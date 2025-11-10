@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ガチャテスト</title>
+ 
+</head>
+<body>
+  <h2>ガチャ確率設定</h2>
+  <label for="rarityLevel">レアリティ数量</label>
+  <select id="rarityLevel">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6" selected>6</option>
+  </select>
+
+  <div id="table">
+    <label>N  : <input id="probN"  type="number" value="60" step="0.1"> %</label><br>
+    <label>R  : <input id="probR"  type="number" value="30" step="0.1"> %</label><br>
+    <label>SR : <input id="probSR" type="number" value="8" step="0.1"> %</label><br>
+    <label>SSR: <input id="probSSR" type="number" value="1" step="0.1"> %</label><br>
+    <label>UR: <input id="probUR" type="number" value="0.75" step="0.1"> %</label><br>
+    <label>LR: <input id="probLR" type="number" value="0.25" step="0.1"> %</label><br>
+  </div>
+  <h3>ガチャラインナップ <input id="lineupNum"  type="number" value="5" step="1" min="1"> 個</h3>
+  <table id="lineup-table"></table>
+
+  <h3>ガチャ回数</h3>
+  <input id="gachaCount" type="number" value="100" min="1" step="1" min="1"> 回
+
+  <div style="margin-top:10px;">
+    <button id="gachaSingle">単発</button>
+    <button id="gachaTen">10連</button>
+    <button id="gachaCustom">任意回数</button>
+  </div>
+  <div>
+  <label>
+    <input type="checkbox" id="combineDuplicates" checked>
+    重複した結果をまとめて表示する
+  </label>
+</div>
+
+<table id="resultTable" border="1" style="border-collapse: collapse; margin-top: 10px;">
+  <thead>
+    <tr>
+      <th>レアリティ</th>
+      <th>アイテム名</th>
+      <th>個数</th>
+    </tr>
+  </thead>
+  <tbody id="resultBody"></tbody>
+</table>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
