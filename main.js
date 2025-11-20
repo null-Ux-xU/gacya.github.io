@@ -12,6 +12,8 @@ class MainData
 
   static rarityNum = 6;
 
+  static itemLineupNum = 5;
+
   //レアリティのベース
   static rarityTable = ["N", "R", "SR", "SSR", "UR" ,"LR"];
   
@@ -96,7 +98,7 @@ class MainData
     msg += "[resultItems]\n";
 
     for (const [indexKey, itemObj] of Object.entries(this.resultItems)) {
-      const name = itemObj.itemName || "(no name)";
+      const name = itemObj.itemName || "はずれ";
       const rarity = itemObj.rarity || "(no rarity)";
       msg += `  ${indexKey}: [Rarity: ${rarity}] ${name}\n`;
     }
@@ -112,7 +114,7 @@ class MainData
 function callMainAction(count) {
   //入力欄から確率を取得
   const probabilities = MainData.rarityTable.slice(0, MainData.rarityNum).map(r => {
-    return parseFloat(MainData.editableWeights[r] ?? MainData.baseWeights[r]);
+    return parseFloat(document.getElementById(r + "-Probability").value);
   });
   
   // 合計チェック
@@ -154,6 +156,9 @@ function callMainAction(count) {
   }
 }
 
+/**
+ * レアリティ名と排出確率を表示する
+ */
 function updateLabels() {
    //id=tableのタグを取得し、中身を消す
   const container = document.getElementById("rarityTable");
@@ -170,17 +175,18 @@ function updateLabels() {
   //bodyの作成
   const tbody = document.createElement("tbody");
 
-  //表示されるところ
-  const adjustedWeights = MainData.rarityTable.slice(0, MainData.rarityNum).map(rarity => MainData.baseWeights[rarity]);
-  
+  //表示される確率の格納
+  const baseWeights = MainData.rarityTable.slice(0, MainData.rarityNum).map(rarity => MainData.baseWeights[rarity]);
+  const editableWeights = MainData.rarityTable.slice(0, MainData.rarityNum).map(rarity => MainData.editableWeights[rarity]);
+
   //失われた値を最高レアリティに追加
-  adjustedWeights[MainData.rarityNum - 1] += parseFloat(100 - calcTotalValue(adjustedWeights));
+  baseWeights[MainData.rarityNum - 1] += parseFloat(100 - calcTotalValue(baseWeights));
 
   //レアリティの数だけ入力欄を作成
   for (let i = 0; i < MainData.rarityNum; i++) {
     const rarity = MainData.rarityTable[i];
     const displayName = MainData.rarityDisplayNames[rarity];
-    const resultValue = adjustedWeights[i].toFixed(2);
+    const resultValue = editableWeights[i]?.toFixed(2) || baseWeights[i].toFixed(2);
     const row = document.createElement("tr");
 
     //表示名入力
@@ -220,13 +226,17 @@ function updateLabels() {
   container.appendChild(table);
 }
 
+
+/**
+ * 排出アイテムを作成する
+ */
 function showLineup() {
   //lineupTableの取得と初期化
   const table = document.getElementById("lineupTable");
   table.replaceChildren();
 
   //ラインナップの総数取得
-  const totalCount = parseInt(document.getElementById("lineupNum").value) || 1;
+  const totalCount = MainData.itemLineupNum;
 
   //ヘッダー作成
   table.appendChild(createTableHeader(MainData.itemDisplayHeaderTextArray));
@@ -238,7 +248,7 @@ function showLineup() {
   for (let i = 0; i < totalCount; i++) {
     //1行ごとに要素を作成
     const row = document.createElement("tr");
-    row.id = "indexNo." + i;
+    const arraykey = row.id = "indexNo." + i;
 
     const itemData = MainData.resultItems[row.id] || { rarity: "N", itemName: "" }; // 空白はN
 
@@ -271,6 +281,10 @@ function showLineup() {
       rarityName: itemData.rarity
     });
     
+    MainData.resultItems[arraykey] = {
+      itemName: itemData.itemName,
+      rarity: itemData.rarity      
+    };
 
     //名前入力欄に変更があったら登録
     itemCell.addEventListener("change", e => {
@@ -290,7 +304,6 @@ function showLineup() {
       //新しい名前を追加
       MainData.resultItems[arraykey].itemName = newName;
     });
-
 
     //プルダウンに変更があったら登録
     select.addEventListener("change", e => {
@@ -398,26 +411,25 @@ function calcTotalValue(numberArray){
  */
 function getCorrectedBaceWight(rarityNum){
   //表示されるところ
-  const adjustedWeights = MainData.baseWeights.slice(0, MainData.rarityNum);
+  const baseWeights = MainData.baseWeights.slice(0, MainData.rarityNum);
   
   //失われた値を最高レアリティに追加
-  adjustedWeights[MainData.rarityNum - 1] += parseFloat(100 - calcTotalValue(adjustedWeights));
-  return adjustedWeights;
+  baseWeights[MainData.rarityNum - 1] += parseFloat(100 - calcTotalValue(baseWeights));
+  return baseWeights;
 }
 
 //表示名変更
 function onNameInput(e) {
-  const rarity = e.target.id.substr(0, 1);
+  const rarity = e.target.id.replace(/-DisplayName$/, "");
   const text = e.target.value.trim() || rarity;
 
   MainData.rarityDisplayNames[rarity] = text;
-  localStorage.setItem("rarityDisplayNames", JSON.stringify(MainData.rarityDisplayNames));
   showLineup();
 }
 
 // ▼ 確率変更
 function onProbInput(e) {
-  const rarity = e.target.id.substr(0, 1);
+  const rarity = e.target.id.replace(/-Probability$/, "");
   MainData.editableWeights[rarity] = parseFloat(e.target.value) ?? MainData.baseWeights[rarity];
 }
 
@@ -425,23 +437,23 @@ function onProbInput(e) {
 window.addEventListener("DOMContentLoaded", () => {
   loadMainData();
   updateLabels();
-  showLineup(MainData.rarityNum);
+  showLineup();
 
 
   //デバッグ用
   document.getElementById("showMaindatabutton").addEventListener("click", () => MainData.debugMainData());
 
-  // 行数変更時に再描画
-  document.getElementById("lineupNum").addEventListener("change", () => {
-    showLineup(MainData.rarityNum);
+  //アイテム表示数変更時に再描画
+  document.getElementById("lineupNum").addEventListener("change", (e) => {
+    MainData.itemLineupNum = e.target.value;
+    showLineup();
   });
   
   //rarityNumが変更された時
-  document.getElementById("rarityNum").addEventListener("change", () => {
-    //変更された値を保存
-    MainData.rarityNum = parseInt(document.getElementById("rarityNum").value);
+  document.getElementById("rarityNum").addEventListener("change", (e) => {
+    MainData.rarityNum = parseInt(e.target.value);
     updateLabels();
-    showLineup(MainData.rarityNum);
+    showLineup();
   });
 
   //gachaSingleがクリックされた時
@@ -452,8 +464,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
   //gachaCustomがクリックされた時
   document.getElementById("gachaCustom").addEventListener("click", () => {
-    const count = parseInt(document.getElementById("gachaCount").value) || 1;
-    callMainAction(count);
+    const element = document.getElementById("gachaCount")
+    const count = parseInt(element.value);
+    if(count > 1000001) {
+      alert("回数は1000000以下にしてください");
+      element.value = 1000000;
+    }
+    else {
+      callMainAction(count);
+    }
   });
 
   //データの保存をクリックされた時

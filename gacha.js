@@ -8,20 +8,37 @@ import { MersenneTwister } from "./MersenneTwister.js";
  * @param {float[]} params.probabilities - レアリティ毎の確率
  * @param {int} params.rarityNum - レアリティ個数
  * @param {string[]} params.rarityTable - レアリティの名前
- * @param {string[]} params.resultItems - レアリティごとのアイテムリスト
+ * @param {int} params.itemLineupNum - ラインナップの表示個数
+ * @param {string[]} params.resultItems - アイテムリスト
  * @returns {Object[]} 排出されたアイテム群[({ レアリティ, アイテム })]
  */
-export function gachaLogic({gachaCount, probabilities, rarityNum, rarityTable, resultItems}) {
+export function gachaLogic({gachaCount, probabilities, rarityNum, rarityTable, itemLineupNum, resultItems}) {
+    //ラインナップの初期化
+    const itemArray = {
+        N: [],
+        R: [],
+        SR: [],
+        SSR: [],
+        UR: [],
+        LR: []
+    };
+    
+    //渡された配列からレアリティと名前を取り出し、詰め替える
+    const valueArray = Object.values(resultItems);
+    for (const itemObj of valueArray.slice(0, itemLineupNum)) {
+        if(!itemObj.rarity) continue; //意図しない値を弾く
+        itemArray[itemObj.rarity]?.push(itemObj.itemName || "はずれ");
+    }
+
     //乱数生成
     const mt = new MersenneTwister(Date.now());
   
-    //計算に使う変数の作成
+    //結果を代入する配列
     const resultLen = [];
 
     //countに応じたループ(n連実装部)
     for(let i = 0; i < gachaCount; i++ ){
         
-
         //初期化
         let rand = mt.random()*100;
         let cumulative = 0;
@@ -40,7 +57,7 @@ export function gachaLogic({gachaCount, probabilities, rarityNum, rarityTable, r
         }
 
         //アイテム抽選( "" or undefind は「はずれ」)
-        const itemList = resultItems[rarity] || [];
+        const itemList = itemArray[rarity] || [];
         let item = "はずれ";
 
         if (itemList.length > 0) {
