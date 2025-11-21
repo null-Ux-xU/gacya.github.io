@@ -98,7 +98,7 @@ class MainData
     msg += "[resultItems]\n";
 
     for (const [indexKey, itemObj] of Object.entries(this.resultItems)) {
-      const name = itemObj.itemName || "はずれ";
+      const name = itemObj.itemName || "[\"空文字列\"]";
       const rarity = itemObj.rarity || "(no rarity)";
       msg += `  ${indexKey}: [Rarity: ${rarity}] ${name}\n`;
     }
@@ -130,18 +130,17 @@ function callMainAction(count) {
     probabilities: probabilities,
     rarityNum: MainData.rarityNum,
     rarityTable: MainData.rarityTable,
-    resultItems: MainData.resultItems
+    resultItems: MainData.resultItems,
+    itemLineupNum: MainData.itemLineupNum
   });
 
   //レアリティソート
-  const isSort = document.getElementById("sortByRarity")?.checked;
-  if(isSort) {
+  if(document.getElementById("sortByRarity")?.checked) {
     resultLen = sortByRarity(resultLen, MainData.rarityTable);
   }
 
   //重複をまとめた表示
-  const combine = document.getElementById("combineDuplicates").checked;
-  if (combine) {
+  if (document.getElementById("combineDuplicates")?.checked) {
     resultLen = arraySummary(resultLen);
   }
 
