@@ -1,21 +1,11 @@
-import {saveToIndexedDB, getUrl} from "./indexedDB.js";
+import {saveToIndexedDB, getUrl, loadFromIndexedDB} from "./indexedDB.js";
 
-/**
- * 
- * @param {event} event zipファイル読み込みイベント 
- * @returns {object} {resultItems, fileNum, zipId}
- */
-export async function importZipFile(event) {
+
+async function  takeOutFileContents(file) {
 
     //対象となる拡張子
     const allowedExtensions = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".mp3", ".wav", ".ogg"];
-
-    const file = event.target.files[0];
-    if(!file) {
-        alert("ファイルの読み込みに失敗しました");
-        return;
-    }
-
+    
     const zipFile = await JSZip.loadAsync(file);
     let files = Object.values(zipFile.files).filter(f => !f.dir);
 
@@ -51,18 +41,41 @@ export async function importZipFile(event) {
             rarity: "N"
         };
         indexCount++;
+    }    
+    return {
+        zipId,
+        zipBlob,
+        contents: {
+            resultItems,
+            fileNum: indexCount
+        }
+    };
+}
+
+/**
+ * 
+ * @param {event} event zipファイル読み込みイベント 
+ * @returns {object} {resultItems, fileNum, zipId}
+ */
+export async function importZipFile(event) {
+
+    const file = event.target.files[0];
+    if(!file) {
+        alert("ファイルの読み込みに失敗しました");
+        return;
     }
 
-    await saveToIndexedDB(zipId, zipBlob);
-
-    const returnParam ={
-        resultItems,
-        fileNum: indexCount,
-        zipId: zipId
-    }
+    const result = await takeOutFileContents(file);
+    
+    await saveToIndexedDB(result.zipId, result.zipBlob);
+    
     alert("インポートが完了しました！");
 
-    return returnParam;
+    return {
+        resultItems: result.contents.resultItems,
+        fileNum: result.contents.fileNum,
+        zipId: result.zipId
+    };
 }
 
 /**
@@ -92,16 +105,32 @@ function extractFileName(filename) {
  */
 export async function downloadZip(fileId) {
     try{
-
+        const url = await getUrl(fileId);
+        const anchor = document.getElementById("downloadZipBtn");
+        anchor.id = "downloadZipBtn";
+        anchor.class="download-button";
+        anchor.href = url;
+        anchor.download = fileId;  
     }
     catch (error) {
         console.error(error);
     }
+}
 
-    const url = await getUrl(fileId);
-    const anchor = document.getElementById("downloadZipBtn");
-    anchor.id = "downloadZipBtn";
-    anchor.class="download-button";
-    anchor.href = url;
-    anchor.download = fileId;  
+export async function loadZip(fileKey) {
+    const saved = await loadFromIndexedDB(fileKey);
+    if (!saved) {
+        throw new Error("データが見つかりません");
+    }
+    else if(!saved.blob) {
+        throw new Error("blobデータが見つかりません");
+    }
+
+    const result = await takeOutFileContents(saved.blob);
+
+    return {
+        resultItems: result.contents.resultItems,
+        fileNum: result.contents.fileNum,
+        zipId: result.zipId
+    };
 }

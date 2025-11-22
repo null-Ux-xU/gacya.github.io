@@ -20,6 +20,11 @@ export function gachaLogic({gachaCount, probabilities, rarityNum, rarityTable, i
         itemArray[rarity] = [];
     }
 
+    // for (const [indexKey, itemObj] of Object.entries(this.resultItems)) {
+    //   const name = itemObj.itemName || "[\"空文字列\"]";
+    //   const rarity = itemObj.rarity || "(no rarity)";
+    //   msg += `  ${indexKey}: [Rarity: ${rarity}] ${name}\n`;
+    // }
     
     //渡された配列からレアリティと名前を取り出し、詰め替える
     const valueArray = Object.values(resultItems).slice(0, itemLineupNum);
@@ -36,7 +41,7 @@ export function gachaLogic({gachaCount, probabilities, rarityNum, rarityTable, i
 
         for (let i = 0; i < rarityNum; i++) {
             const rarity = rarityTable[i];
-            
+
             //ラインナップに存在しないレアリティ
             if (itemArray[rarity].length === 0) {
                 removedProbabilityTotal += probabilities[i];

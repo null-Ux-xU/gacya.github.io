@@ -5,8 +5,12 @@
     <title>ガチャテスト</title>
   </head>
   <body>
-    <h2>ガチャ確率設定</h2>
+    <h2>ガチャ設定</h2>
+
+    <select id="importZipName" hidden></select>
     <input type="file" id="importZip" accept=".zip">
+
+
     <h3>レアリティ名の編集</h3>
     <div id="rarityNamesEditor"></div>
     <label>レアリティ数量 <input id="rarityNum" type="number" value="6" step="1" min="1" max="6"></label><br>
@@ -27,7 +31,9 @@
 
 
     <div>
-      <button id="showMaindatabutton">メインデータの表示(デバッグ用)</button>
+      (デバッグ用)
+      <button id="showMaindatabutton">メインデータの表示</button>
+      <button id="showDB">DBの表示</button>
     </div><br>
 
     <label>ガチャラインナップ <input id="lineupNum"  type="number" value="5" step="1" min="1"> 個</label>

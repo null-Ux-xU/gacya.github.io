@@ -5,15 +5,13 @@ import { arraySummary } from "./arraySummary.js";
 import { createTableElement } from "./createTableElement.js";
 import {saveDataToLocalStorage, getDataFromLocalStorage} from "./localStrage.js";
 import {createTableHeader} from "./createTableHeader.js";
-import {importZipFile, downloadZip} from "./importZip.js";
+import {importZipFile, downloadZip, loadZip} from "./importZip.js";
+import {showAllIndexedDBData} from "./indexedDB.js";
+
 class MainData
 {
 
   //---変更されないデータ群----
-
-  static rarityNum = 6;
-
-  static itemLineupNum = 5;
 
   //レアリティのベース
   static rarityTable = ["N", "R", "SR", "SSR", "UR" ,"LR"];
@@ -39,14 +37,20 @@ class MainData
   
   //---ユーザーの操作によって自由に変更されるデータ群-----
 
+  //レアリティ総数
+  static rarityNum = 6;
+
+  //ラインナップ総数
+  static itemLineupNum = 5;
+
   //レアリティの表示変更用
   static rarityDisplayNames = {
-  N: "N",
-  R: "R",
-  SR: "SR",
-  SSR: "SSR",
-  UR: "UR",
-  LR: "LR"
+    N: "N",
+    R: "R",
+    SR: "SR",
+    SSR: "SSR",
+    UR: "UR",
+    LR: "LR"
   };
 
   //アイテム名とそのレアリティ
@@ -84,6 +88,13 @@ class MainData
   //デバッグ用
   static debugMainData() {
     let msg = "MainData Debug\n\n";
+
+    msg += "[rarityNum]:";
+    msg += `${MainData.rarityNum}\n`;
+
+    msg += "[itemLineupNum]:";
+    msg += `${MainData.itemLineupNum}\n`;
+
     msg += "[editableWeights]\n";
 
     for (const [r, v] of Object.entries(this.editableWeights)) {
@@ -112,7 +123,7 @@ class MainData
       msg += `${keyCount} : ${key || "none"}\n`;
       keyCount++;
     }
-    alert(msg);
+    console.log(msg);
   }
 }
 
@@ -167,6 +178,20 @@ function callMainAction(count) {
   if(MainData.filesKey.length === 0) return;
  
   downloadZip(MainData.filesKey[0]);
+}
+
+function updateLineupToZip() {
+  if(MainData.filesKey.length > 1) {
+    const importZipNameElement = document.getElementById("importZipName");
+    importZipNameElement.replaceChildren();
+    MainData.filesKey.forEach(r => {
+      const option = document.createElement("option");
+      option.value = r;
+      option.textContent = r;
+      importZipNameElement.appendChild(option);
+    });
+    importZipNameElement.hidden = false;
+  }
 }
 
 /**
@@ -455,7 +480,22 @@ window.addEventListener("DOMContentLoaded", () => {
 
   //デバッグ用
   document.getElementById("showMaindatabutton").addEventListener("click", () => MainData.debugMainData());
+  document.getElementById("showDB").addEventListener("click", async () => {
+    const allData = await showAllIndexedDBData();
+    console.log("取得結果 →", allData);
+  });
 
+  document.getElementById("importZipName").addEventListener("change", async(e) => {
+    const returnParam = await loadZip(e.target.value);
+    if(!returnParam) return;
+    
+    MainData.resultItems = returnParam.resultItems;
+    MainData.itemLineupNum = returnParam.fileNum;
+    document.getElementById("lineupNum").value = MainData.itemLineupNum;
+    MainData.filesKey.push(returnParam.zipId);
+    MainData.filesKey = [...new Set(MainData.filesKey)];
+    showLineup();
+  });
 
   document.getElementById("importZip").addEventListener("change", async(e)=>{
     const returnParam = await importZipFile(e);
@@ -464,7 +504,10 @@ window.addEventListener("DOMContentLoaded", () => {
     MainData.resultItems = returnParam.resultItems;
     MainData.itemLineupNum = returnParam.fileNum;
     MainData.filesKey.push(returnParam.zipId);
+    document.getElementById("lineupNum").value = MainData.itemLineupNum;
     showLineup();
+    updateLineupToZip();
+    
   });
 
   //アイテム表示数変更時に再描画

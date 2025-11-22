@@ -28,7 +28,8 @@ export async function saveToIndexedDB(fileId, fileBlob, meta = null) {
 
     const data = {
       id: fileId,
-      blob: fileBlob, //ZIPから抽出したデータ
+      blob: fileBlob,
+      
     };
 
     const request = store.put(data);
@@ -62,6 +63,34 @@ export async function getUrl(fileId) {
     }
     return URL.createObjectURL(data.blob);
 }
+/**
+ * GachaStore に保存されている全データを取得し、内容を確認表示する
+ */
+export async function showAllIndexedDBData() {
+  const db = await openDB();
 
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("GachaStore", "readonly");
+    const store = tx.objectStore("GachaStore");
 
+    const request = store.getAll(); // 全取得
 
+    request.onsuccess = () => {
+      const allData = request.result;
+
+      if (allData.length === 0) {
+        console.log("IndexedDB に保存されているデータはありません。");
+      } else {
+        console.log("IndexedDB 内の全データ一覧：");
+        allData.forEach((entry, index) => {
+          console.log(`\n----- No.${index + 1} -----`);
+          console.log(`ID: ${entry.id}`);
+          console.log(`Blob サイズ: ${entry.blob.size} bytes`);
+        });
+      }
+      resolve(allData);
+    };
+
+    request.onerror = () => reject(request.error);
+  });
+}
