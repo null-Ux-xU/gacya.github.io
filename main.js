@@ -32,6 +32,9 @@ class MainData
     LR: 0.5
   };
 
+  //結果ツイートURL
+  static tweetUrl = `https://twitter.com/intent/tweet`;
+
   //DBに保存されているkeyの一覧
   static dataKey = new Array;
 
@@ -223,16 +226,24 @@ async function callMainAction(count) {
   const resultIndexNo = [];
   const tbody = document.getElementById("resultBody");
   tbody.replaceChildren(); 
+  const name = MainData.gachaName.get(MainData.onLoadedDatakey) ?? document.getElementById("gachaName").value;
+  let resultText = `${name?.trim() || "ガチャ"}${count}連\n` ?? "";
   for (const res of resultLen) {
     tbody.insertAdjacentHTML(
       "beforeend",
       `<tr><td>${MainData.rarityDisplayNames[res.rarity]}</td><td>${res.item}</td><td>×${res.val || 1}個</td></tr>`
     );
     console.log(`${res.indexNo}`);
-    const index = parseInt(res.indexNo.split(".")[1], 10);
+    const index = parseInt(res.indexNo?.split(".")[1] ?? -1, 10);
     resultIndexNo.push(index);
     console.log(index);
+
+    resultText += `${MainData.rarityDisplayNames[res.rarity]}：${res.item} ×${res.val || 1}個\n`;
   }
+  document.getElementById("tweetButton").hidden = false;
+  
+  MainData.tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(resultText)}`;
+
   if(MainData.onLoadedDatakey){
     await getResultItemsToFile(MainData.onLoadedDatakey, resultIndexNo);
   }
@@ -548,7 +559,8 @@ window.addEventListener("DOMContentLoaded", () => {
   const loadZipNameElement = document.getElementById("loadZipName");
 
   //新規ファイルのインポート
-  document.getElementById("importZip").addEventListener("change", async(e)=>{
+  const element = document.getElementById("importZip");
+  element.addEventListener("change", async(e)=>{
     const returnParam = await importZipFile(e);
     if(!returnParam) return;
     
@@ -561,6 +573,7 @@ window.addEventListener("DOMContentLoaded", () => {
     updateLineupToZip(returnParam.zipId);
     MainData.onLoadedDatakey = returnParam.zipId;
     saveMainData();
+    element.value = "";
   });
   
   //過去に読み込んだファイルのロード
@@ -598,7 +611,7 @@ window.addEventListener("DOMContentLoaded", () => {
     MainData.resultItems = returnParam.editableMainData.resultItems;
     document.getElementById("lineupNum").value = MainData.itemLineupNum = returnParam.editableMainData.itemLineupNum;
     if(!MainData.dataKey.includes(returnParam.zipId)) MainData.dataKey.push(returnParam.zipId);
-    MainData.gachaName.set(returnParam.zipId, returnParam.gachaName);
+    MainData.gachaName.set(MainData.onLoadedDatakey, returnParam.gachaName);
     showLineup();
   });
 
@@ -690,6 +703,11 @@ window.addEventListener("DOMContentLoaded", () => {
     else {
       await callMainAction(count);
     }
+  });
+
+  document.getElementById("tweetButton").addEventListener("click", ()=> {
+    //新しいタブで開く
+    window.open(MainData.tweetUrl, "_blank");
   });
 
   // --- デバッグ用 ---
