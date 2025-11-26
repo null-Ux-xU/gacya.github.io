@@ -315,11 +315,8 @@ function updateLabels() {
       inputType: "text",
       inputValue: displayName,
       ariaLabel: "レアリティ" + rarity + "を任意の文字に置き換える為の入力欄",
-      styleWidthValue: "120px",
-      rarityName: rarity
     });
     tdNameInput.addEventListener("input", onNameInput);
-    //applyCellStyle(tdNameInput);
 
     //確率入力
     const  tdProbInput = createTableElement({
@@ -328,12 +325,10 @@ function updateLabels() {
       inputType: "number",
       inputValue: resultValue,
       ariaLabel: "レアリティ" + rarity + "の排出確率を入力する欄",
-      styleWidthValue: "80px",
-      stepValue: 0.1,
-      rarityName: rarity
+      divWrapperName: "ProbabilityWrapper",
+      step: parseFloat(0.1)
     });
     tdProbInput.addEventListener("input", onProbInput);
-    //applyCellStyle(tdProbInput);
    
     //作成したエレメントを追加
     row.appendChild(tdNameInput);
@@ -396,8 +391,6 @@ function showLineup() {
       inputType: "text",
       inputValue: itemData.itemName,
       ariaLabel: "上から" + (i + 1) + "番目にあるアイテム名入力欄",
-      styleWidthValue: "200px",
-      rarityName: itemData.rarity
     });
     
     MainData.resultItems[arraykey] = {
@@ -505,13 +498,6 @@ function deleteMainData() {
   deleteLocalStrageData("gacyaData");
 }
 
-
-function applyCellStyle(td) {
-  Object.assign(td.style, {
-    border: "1px solid black",
-    padding: "4px 8px"
-  });
-}
 /**
  * 配列内の合計値を求める関数
  * 
@@ -545,6 +531,15 @@ window.addEventListener("DOMContentLoaded", () => {
   updateLineupToZip();
   updateLabels();
   showLineup();
+
+
+
+  const input = document.querySelector('input[type="text"][name="editRarityDisplayNameForm"]');
+  input.addEventListener('input', () => {
+    if (input.value.length > 10) {
+      input.value = input.value.slice(0, 10);
+    }
+  });
 
   // --- データ管理イベント ---
   const loadZipNameElement = document.getElementById("loadZipName");

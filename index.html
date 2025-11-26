@@ -41,7 +41,7 @@
 
     <div>
       <button id="saveButton">編集したデータの保存</button>
-      <button id="deleteDataButton">保存したデータの削除</button>
+      <button id="deleteDataButton" class="deleteDataButton">保存したデータの削除</button>
     </div>
 
 
@@ -53,7 +53,11 @@
       <button id="showlocalstrage">localStorageの表示</button>
     </div><br>
 
-    <label>ガチャラインナップ <input id="lineupNum"  type="number" value="5" step="1" min="1"> 個</label>
+    <label class="lineupNum">
+      ラインナップ数： 
+      <input id="lineupNum" name="lineupNum"  type="number" value="5" step="1" min="1"> 
+    </label>
+
     <table id="lineupTable"></table><br>
 
     <label>
