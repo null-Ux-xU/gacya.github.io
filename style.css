@@ -56,8 +56,12 @@ select option {
   margin-left: 10px;
   margin-bottom: 10px;
   font-size: 40px;
+  border:2px solid #CC91A2;
+  padding: 10px;
+  padding-left: 5px;
+  padding-right: 20px;
 }
-.loadZipName option {
+loadZipName option {
   width: auto;
   text-align: left;
   padding: 0;
@@ -124,7 +128,7 @@ button:hover,
   cursor: pointer;
   font-size: 25px;
   font-weight: bold;
-  transform: translate3d(0,-10px,0);
+  transform: translate3d(0,-5px,0);
   margin-left: 20px;
 }
 
