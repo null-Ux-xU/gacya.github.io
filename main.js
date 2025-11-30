@@ -1,5 +1,5 @@
 import { gachaLogic } from "./GachaLogic/gacha.js";
-import { sortByRarity } from "./GachaLogic/sort.js";
+import { sortByRarityFromN, sortByRarityFromLR } from "./GachaLogic/sort.js";
 import { arraySummary } from "./GachaLogic/arraySummary.js";
 import { createTableElement } from "./Create/createTableElement.js";
 import {saveDataToLocalStorage, getDataFromLocalStorage} from "./DataSave/localStrage.js";
@@ -219,9 +219,17 @@ async function callMainAction(count) {
   });
 
   //レアリティソート
-  if(document.getElementById("sortByRarity")?.checked) {
-    resultLen = sortByRarity(resultLen, MainData.rarityTable);
-  }
+  switch(getSortType()) {
+    case "desc": 
+      sortByRarityFromLR(resultLen, MainData.rarityTable);
+      break;
+
+    case "asc":
+    sortByRarityFromN(resultLen, MainData.rarityTable);
+    break;
+
+    case "none": break;
+  };
 
   //重複をまとめた表示
   if (document.getElementById("combineDuplicates")?.checked) {
@@ -233,7 +241,7 @@ async function callMainAction(count) {
   const tbody = document.getElementById("resultBody");
   tbody.replaceChildren(); 
   const name = MainData.gachaName.get(MainData.onLoadedDatakey) ?? document.getElementById("gachaName").value;
-  let resultText = `${name?.trim() || "ガチャ"}${count}連\n` ?? "";
+  let resultText = `ガチャ名:[${name?.trim() || "なし"}]${count}連\n` ?? "";
   for (const res of resultLen) {
     tbody.insertAdjacentHTML(
       "beforeend",
@@ -248,10 +256,17 @@ async function callMainAction(count) {
   }
   document.getElementById("resultElements").hidden = false;
   
+  const twitterTag = "#空のつーる";
+  resultText += twitterTag; 
   MainData.tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(resultText)}`;
 
   if(MainData.onLoadedDatakey){
     await getResultItemsToFile(MainData.onLoadedDatakey, resultIndexNo);
+  }
+  else {
+    const anchor = document.getElementById("downloadZipBtn");
+    anchor.hidden = true;
+    anchor.style.display = "none";
   }
   
 }
@@ -525,10 +540,15 @@ function onNameInput(e) {
   showLineup();
 }
 
-// ▼ 確率変更
+//確率変更
 function onProbInput(e) {
   const rarity = e.target.id.replace(/-Probability$/, "");
   MainData.editableWeights[rarity] = parseFloat(e.target.value) ?? MainData.baseWeights[rarity];
+}
+
+function getSortType() {
+  const selected = document.querySelector('input[name="raritySort"]:checked');
+  return selected?.value ?? "none";
 }
 
 // イベント登録
