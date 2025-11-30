@@ -6,8 +6,8 @@ import {saveDataToLocalStorage, getDataFromLocalStorage} from "./DataSave/localS
 import {createTableHeader} from "./Create/createTableHeader.js";
 import {importZipFile, getResultItemsToFile} from "./DataSave/importZip.js";
 import {saveToIndexedDB, loadFromIndexedDB, clearAllIndexedDBData, showAllIndexedDBData, saveHistory, loadHistoryFromIndexedDB, buildHistoryString} from "./DataSave/indexedDB.js";
-import {getFormattedDate} from "./formattedDate.js"
-import { createURL } from "./exportHistoryToText.js";
+import {getFormattedDate} from "./DataSave/formattedDate.js"
+import { createURL } from "./DataSave/exportHistoryToText.js";
 class MainData
 {
 
